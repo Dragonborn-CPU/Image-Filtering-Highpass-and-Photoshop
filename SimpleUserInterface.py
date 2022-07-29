@@ -4,7 +4,7 @@ Date: 7/20/2022
 For High Pass Filter Button: Finds latest two images in folder, sends them through high pass filter in photoshop,
 saves them to a new folder before displaying the images and then finding image difference.
 The Imaging Edge Remote Button opens up the Imaging Edge Remote App, disable if you don't have. Code is pretty messy,
-must import python-photoshop-api or go to https://github.com/lohriialo/photoshop-scripting-python.
+must import python-photoshop-api or go to https://github.com/lohriialo/photoshop-scripting-python. Check README file before trying to use this program.
 """
 
 from tkinter import *
