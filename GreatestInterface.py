@@ -27,6 +27,7 @@ Steps when running program (If not using SpinView/ImagingEdge then just click ru
 3. Take  two pictures in imaging edge remote
 4. Close app
 5. After app is closed, program will continue to run
+Check README file before trying to use this program.
 '''
 
 filename = 'C:/Users/admin/Downloads/DSC00048.JPG'  # first image path, same path as picture taken from Imaging/SpinView
