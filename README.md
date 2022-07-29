@@ -6,5 +6,6 @@ When using any of the interfaces, one problem that may arise is that whatever so
 2. PyQt3D
 3. opencv-python
 4. pywin32
+5. photoshop-python-api (https://github.com/lohriialo/photoshop-scripting-python)
 
 You may have to manually install the libraries in your project interpreter. 
