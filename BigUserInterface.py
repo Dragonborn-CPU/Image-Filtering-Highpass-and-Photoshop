@@ -4,7 +4,7 @@ Date: 7/08/2022
 Lots of buttons do lots of different things. Most importantly, the Photoshop high pass filter button sends last two
 images in a folder through a highpass filter in photoshop. Smart sharpen is another filter in photoshop, so when
 clicked images are sent through photoshop. User interface is pretty messy and so is the code. Must import
-python-photoshop-api or get at https://github.com/lohriialo/photoshop-scripting-python. Check README file before trying to use this program.
+photoshop-python-api or get at https://github.com/lohriialo/photoshop-scripting-python. Check README file before trying to use this program.
 """
 
 from tkinter import *
