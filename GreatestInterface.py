@@ -23,12 +23,13 @@ Before Starting:
 1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main()
 2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST have the same filepath as folder path
 3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() 
-4. Images used MUST be in RAW form.
 which requires photoshop to be opened before starting program.
+4. Images used MUST be in RAW form.
+5. Specify the variables (below)
 Steps when running program (If not using SpinView/ImagingEdge then just click run - you don't have to do anything else):
 1. Click Run
 2. Imaging Edge Remote or SpinView will open and click camera that you want to take pictures with
-3. Take  two pictures in imaging edge remote
+3. Take  two pictures in imaging edge remote/spin view
 4. Close app
 5. After app is closed, program will continue to run
 '''
@@ -65,21 +66,18 @@ NOTE: All highpass filters degree/effect can be changed in high_pass_CV()
 
 
 def convertRAW():  # converts images from RAW to jpg. Furthermore, specifies filename_save paths.
-    global filename
-    global filename2
+    global filename, filename2
     if filename_save == 'path':
-        rgb = rawpy.imread(path).postprocess()
-        imageio.imsave(path.split(".")[0] + ".jpg", rgb)
-        rgb = rawpy.imread(path2).postprocess()
-        imageio.imsave(path2.split(".")[0] + ".jpg", rgb)
+        imageio.imsave(path.split(".")[0] + ".jpg", rawpy.imread(path).postprocess())
+        imageio.imsave(path2.split(".")[0] + ".jpg", rawpy.imread(path2).postprocess())
         filename, filename2 = path.split(".")[0] + ".jpg", path2.split(".")[0] + ".jpg"
     if filename_save == 'no path':
         list_of_files = glob.glob(path)  # * means all if you need specific format then *.csv
         sorted_files = sorted(list_of_files, key=os.path.getctime)
-        rgb = rawpy.imread(sorted_files[-1]).postprocess()
-        imageio.imsave(path2 + os.path.basename(sorted_files[-1]).split(".")[0] + '.jpg', rgb)
-        rgb = rawpy.imread(sorted_files[-2]).postprocess()
-        imageio.imsave(path2 + os.path.basename(sorted_files[-2]).split(".")[0] + '.jpg', rgb)
+        imageio.imsave(path2 + os.path.basename(sorted_files[-1]).split(".")[0] + '.jpg',
+                       rawpy.imread(sorted_files[-1]).postprocess())
+        imageio.imsave(path2 + os.path.basename(sorted_files[-2]).split(".")[0] + '.jpg',
+                       rawpy.imread(sorted_files[-2]).postprocess())
         filename = path2 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
         filename2 = path2 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
 
@@ -131,8 +129,7 @@ def Photoshop():  # sends images through Photoshop highpass filter
         docRef.ActiveLayer.ApplyHighPass(hp)  # apply High Pass Filter
         docRef.Selection.Deselect()
 
-        options = ps.JPEGSaveOptions(quality=5)  # save image
-        ps.active_document.saveAs(name, options, asCopy=True)
+        ps.active_document.saveAs(name, ps.JPEGSaveOptions(quality=5), asCopy=True)  # save image
     with Session(action=None) as ps:  # second image
         app = Dispatch('Photoshop.Application')
         # app = GetActiveObject("Photoshop.Application")
@@ -140,8 +137,7 @@ def Photoshop():  # sends images through Photoshop highpass filter
         docRef.ActiveLayer.ApplyHighPass(hp)  # apply High Pass Filter
         docRef.Selection.Deselect()
 
-        options = ps.JPEGSaveOptions(quality=5)  # save image
-        ps.active_document.saveAs(name2, options, asCopy=True)
+        ps.active_document.saveAs(name2, ps.JPEGSaveOptions(quality=5), asCopy=True)  # save image
         app.Quit()
 
 
@@ -159,7 +155,7 @@ def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
         read = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2GRAY)
         read2 = cv2.cvtColor(cv2.imread(filename2), cv2.COLOR_BGR2GRAY)
         if high_pass_filter == 'bilateral':
-            bib = read - cv2.bilateralFilter(read, 15, 80, 80) + 8   # img, ksize, sigmaColor, sigmaSpace
+            bib = read - cv2.bilateralFilter(read, 15, 80, 80) + 8  # img, ksize, sigmaColor, sigmaSpace
             bib2 = read2 - cv2.bilateralFilter(read2, 15, 80, 80) + 8
             save(bib, bib2)
         if high_pass_filter == 'box':
@@ -179,9 +175,9 @@ def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
             fil2 = cv2.filter2D(read2, -1, kernel)
             save(fil, fil2)
         if high_pass_filter == 'sepfilter2D':
-            m = np.array([-1, 2, -1])   # custom filter using sepFilter2D, change here
+            m = np.array([-1, 2, -1])  # custom filter using sepFilter2D, change here
             g = np.array([-1, 2, -1])
-            sep = cv2.sepFilter2D(read, -1, m, g)   # img, ddepth, mask/filter
+            sep = cv2.sepFilter2D(read, -1, m, g)  # img, ddepth, mask/filter
             sep2 = cv2.sepFilter2D(read2, -1, m, g)
             save(sep, sep2)
         if high_pass_filter == 'gaussian':
@@ -193,15 +189,15 @@ def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
             lap2 = cv2.Laplacian(read2, -1)
             save(lap, lap2)
         if high_pass_filter == 'log':
-            log = cv2.Laplacian(cv2.GaussianBlur(read, (5, 5), 0), -1)   # Gaussian Blur, ddepth
+            log = cv2.Laplacian(cv2.GaussianBlur(read, (5, 5), 0), -1)  # Gaussian Blur, ddepth
             log2 = cv2.Laplacian(cv2.GaussianBlur(read2, (5, 5), 0), -1)
             save(log, log2)
         if high_pass_filter == 'median':
-            med = read - cv2.medianBlur(read, 15) + 8   # img, ksize
+            med = read - cv2.medianBlur(read, 15) + 8  # img, ksize
             med2 = read2 - cv2.medianBlur(read2, 15) + 8
             save(med, med2)
         if high_pass_filter == 'prewitt':
-            kernelX = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])   # prewitt filter using filter2D
+            kernelX = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])  # prewitt filter using filter2D
             kernelY = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
             preX, preY = cv2.filter2D(read, -1, kernelX), cv2.filter2D(read, -1, kernelY)
             preX2, preY2 = cv2.filter2D(read2, -1, kernelX), cv2.filter2D(read2, -1, kernelY)
@@ -222,25 +218,23 @@ def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
         pass
 
 
-def set_up():  # set-up images: import into OpenCV, resize, change to grayscale, and get image difference
+def getCV():  # set-up images: import images into CV after highpass filter, reference set_up_getCV
     if highpass == 'True':
         img, img2 = cv2.imread(name), cv2.imread(name2)
-        w, h = int(img.shape[1] * resize), int(img.shape[0] * resize)
-        img, img2 = cv2.resize(img, (w, h)), cv2.resize(img2, (w, h))
-        img, img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-        cv2.imshow('Image 1', img)
-        cv2.imshow('Image 2', img2)
-        imgdiff = cv2.subtract(img, img2)
-        cv2.imwrite(filename.split(".")[0] + '_Diff.JPG', imgdiff)
+        set_up_getCV(img, img2)
     if highpass == 'False':
         img, img2 = cv2.imread(filename), cv2.imread(filename2)
-        w, h = int(img.shape[1] * resize), int(img.shape[0] * resize)
-        img, img2 = cv2.resize(img, (w, h)), cv2.resize(img2, (w, h))
-        img, img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-        cv2.imshow('Image 1', img)
-        cv2.imshow('Image 2', img2)
-        imgdiff = cv2.subtract(img, img2)
-        cv2.imwrite(filename.split(".")[0] + '_Diff.JPG', imgdiff)
+        set_up_getCV(img, img2)
+
+
+def set_up_getCV(src, src2):   # resizes, gray scales, and gets image diff from images in getCV()
+    w, h = int(src.shape[1] * resize), int(src.shape[0] * resize)
+    img, img2 = cv2.resize(src, (w, h)), cv2.resize(src2, (w, h))
+    img, img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    cv2.imshow('Image 1', img)
+    cv2.imshow('Image 2', img2)
+    imgdiff = cv2.subtract(img, img2)
+    cv2.imwrite(filename.split(".")[0] + '_Diff.JPG', imgdiff)
 
 
 def find_contour():  # find contours in image difference
@@ -362,14 +356,11 @@ if __name__ == '__main__':
     # sony_camera()
     # SpinView()
     convertRAW()
-    global font
-    global name
-    global name2
     font = cv2.FONT_HERSHEY_COMPLEX
     name, name2 = filename.split(".")[0] + '_PPP.jpg', filename2.split(".")[0] + '_PPP.jpg'
     # Photoshop()
     high_pass_CV()
-    set_up()
+    getCV()
     diff = cv2.imread(filename.split(".")[0] + '_Diff.JPG')
     edged = cv2.Canny(diff, 30, 200)
     find_contour()
