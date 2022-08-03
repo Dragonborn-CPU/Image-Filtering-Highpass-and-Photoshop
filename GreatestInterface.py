@@ -23,6 +23,7 @@ Before Starting:
 1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main()
 2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST have the same filepath as folder path
 3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() 
+4. Images used MUST be in RAW form.
 which requires photoshop to be opened before starting program.
 Steps when running program (If not using SpinView/ImagingEdge then just click run - you don't have to do anything else):
 1. Click Run
