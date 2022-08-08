@@ -14,4 +14,4 @@ Needed to open photoshop application
 Needed to use photoshop in all 3 programs.
 
 You may have to manually install the libraries in your project interpreter. 
-Photoshop must be installed on your computer or disable photoshop commands in the program. For GreatestInterface.py, SpinView and Imaging Edge Remote must be installed on your computer and the filepaths must align with the code. However, you can disable Imaging Edge Remote and SpinView in SpinView() and ImagingEdge() in main().
+Photoshop must be installed on your computer or disable photoshop commands in the program. For GreatestInterface.py, SpinView and Imaging Edge Remote must be installed on your computer and the filepaths must align with the code. However, you can disable Imaging Edge Remote and SpinView in SpinView() and ImagingEdge() in main(). Finally for any of the code, if Photoshop is used at all photoshop-python-api must be imported into program.
