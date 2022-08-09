@@ -13,19 +13,22 @@ import rawpy
 import imageio
 import glob
 import imghdr
+import sys
 
 ''' By: Ethan S for MLI
-Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image difference, then finds all contours and their areas. 
-Prints out location, area, perimeter, aspect ratio, and extent of each contour. Furthermore, after getting image diff with contours, can left click on image to get 
-2D graph of all pixel signals that have same x and same y as (x, y) cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood heatmap of pixel signals 
-of (x, y) cord clicked. Particle detection parameters can be edited in find_contours().
+Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image 
+difference, then finds all contours and their areas. Prints out location, area, perimeter, aspect ratio, and extent of 
+each contour. Furthermore, after getting image diff with contours, can left click on image to get 2D graph of all pixel 
+signals that have same x and same y as (x, y) cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood 
+heatmap of pixel signals of (x, y) cord clicked. Particle detection parameters can be edited in find_contours().
 Before Starting:
 1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main()
 2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST be stored in the same path specified under
 filename_save ='no path'.
-3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() which requires photoshop to be opened before 
-starting program. Can also disable Photoshop() if not using photoshop.
-4. Images must be in RAW (.arw) or JPEG (.jpg) form; however, both images must be same image type (so both RAW form or both jpg form).
+3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() 
+which requires photoshop to be opened before starting program. Can also disable Photoshop() if not using photoshop.
+4. Images must be in RAW (.arw) or JPEG (.jpg) form; however, both images must be same image type (so both RAW form or
+both jpg form).
 5. Specify the variables (below)
 Steps when running program (If not using SpinView/ImagingEdge then just click run - you don't have to do anything else):
 1. Click Run
@@ -37,8 +40,9 @@ Steps when running program (If not using SpinView/ImagingEdge then just click ru
 # Variables
 filename_save = 'no path'
 '''Determines which save path to follow:
-path : If set to path, must set paths for images. Use if not using SpinView or Imaging Edge.
-no path: Must set path for folder where raw images are stored. Gets latest 2 images added to folder where raw images are stored. Use if using SpinView/Imaging Edge.
+path : If set to path, must set paths for images
+no path: don't set path for images being used, but must set path for folder where raw images are stored. Gets latest 2
+images added to folder where raw images are stored.
 '''
 # For filename_save = 'path'
 path = 'C:/Users/admin/Downloads/DSC00002.ARW'  # first image path
@@ -51,7 +55,7 @@ path4 = r'C:/Users/admin/Downloads/'   # folder where edited images are stored
 # Other settings
 hp = 15  # set highpass filter scale for Photoshop() here (range is 0-2000)
 resize = .3  # set resize value of image (in case image is too big). Range is 0 < x <= 1.
-highpass = 'True'
+highpassON = 'True'
 ''' Set highpass to either True or False:
 True : images are sent through highpass in OpenCV
 False : images are not sent through highpass in OpenCV
@@ -70,7 +74,7 @@ def convertRAW():  # converts images from RAW to jpg. Furthermore, specifies fil
             imageio.imsave(path.split(".")[0] + ".jpg", rawpy.imread(path).postprocess())
             imageio.imsave(path2.split(".")[0] + ".jpg", rawpy.imread(path2).postprocess())
         filename, filename2 = path.split(".")[0] + ".jpg", path2.split(".")[0] + ".jpg"
-    if filename_save == 'no path':
+    elif filename_save == 'no path':
         sorted_files = sorted(glob.glob(path3), key=os.path.getctime)
         if imghdr.what(sorted_files[-1]) == 'tiff':
             imageio.imsave(path4 + os.path.basename(sorted_files[-1]).split(".")[0] + '.jpg',
@@ -79,6 +83,9 @@ def convertRAW():  # converts images from RAW to jpg. Furthermore, specifies fil
                            rawpy.imread(sorted_files[-2]).postprocess())
         filename = path4 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
         filename2 = path4 + os.path.basename(sorted_files[-2]).split(".")[0] + ".jpg"
+    else:
+        print('Error! filename_save is not set to a correct value, please change.')
+        sys.exit()
 
 
 def checkIfProcessRunning(processName):  # checks if process is running
@@ -146,22 +153,22 @@ def save(src, src2):  # saves images from high_pass_CV
 
 
 def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
-    if highpass == 'True':
+    if highpassON == 'True':
         read = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2GRAY)
         read2 = cv2.cvtColor(cv2.imread(filename2), cv2.COLOR_BGR2GRAY)
         if high_pass_filter == 'bilateral':
             bib = read - cv2.bilateralFilter(read, 15, 80, 80) + 8  # img, ksize, sigmaColor, sigmaSpace
             bib2 = read2 - cv2.bilateralFilter(read2, 15, 80, 80) + 8
             save(bib, bib2)
-        if high_pass_filter == 'box':
+        elif high_pass_filter == 'box':
             box = read - cv2.boxFilter(read, -1, (8, 8)) + 8  # img, ddepth, ksize (as tuple)
             box2 = read2 - cv2.boxFilter(read2, -1, (8, 8)) + 8
             save(box, box2)
-        if high_pass_filter == 'canny':
+        elif high_pass_filter == 'canny':
             can = cv2.Canny(read, 80, 120)  # img, threshold1, threshold2
             can2 = cv2.Canny(read2, 80, 120)
             save(can, can2)
-        if high_pass_filter == 'filter2D':
+        elif high_pass_filter == 'filter2D':
             kernel = np.array([[0.0, -1.0, 0.0],  # create custom mask here
                                [-1.0, 4.0, -1.0],
                                [0.0, -1.0, 0.0]])
@@ -169,57 +176,66 @@ def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
             fil = cv2.filter2D(read, -1, kernel)  # img, ddepth, mask/filter
             fil2 = cv2.filter2D(read2, -1, kernel)
             save(fil, fil2)
-        if high_pass_filter == 'sepfilter2D':
+        elif high_pass_filter == 'sepfilter2D':
             m = np.array([-1, 2, -1])  # custom filter using sepFilter2D, change here
             g = np.array([-1, 2, -1])
             sep = cv2.sepFilter2D(read, -1, m, g)  # img, ddepth, mask/filter
             sep2 = cv2.sepFilter2D(read2, -1, m, g)
             save(sep, sep2)
-        if high_pass_filter == 'gaussian':
+        elif high_pass_filter == 'gaussian':
             gau = read - cv2.GaussianBlur(read, (13, 13), 3) + 8  # img, height, width, standard dev
             gau2 = read2 - cv2.GaussianBlur(read2, (13, 13), 3) + 8
             save(gau, gau2)
-        if high_pass_filter == 'laplacian':
+        elif high_pass_filter == 'laplacian':
             lap = cv2.Laplacian(read, -1)  # img, ddepth
             lap2 = cv2.Laplacian(read2, -1)
             save(lap, lap2)
-        if high_pass_filter == 'log':
+        elif high_pass_filter == 'log':
             log = cv2.Laplacian(cv2.GaussianBlur(read, (5, 5), 0), -1)  # Gaussian Blur, ddepth
             log2 = cv2.Laplacian(cv2.GaussianBlur(read2, (5, 5), 0), -1)
             save(log, log2)
-        if high_pass_filter == 'median':
+        elif high_pass_filter == 'median':
             med = read - cv2.medianBlur(read, 15) + 8  # img, ksize
             med2 = read2 - cv2.medianBlur(read2, 15) + 8
             save(med, med2)
-        if high_pass_filter == 'prewitt':
+        elif high_pass_filter == 'prewitt':
             kernelX = np.array([[1, 1, 1], [0, 0, 0], [-1, -1, -1]])  # prewitt filter using filter2D
             kernelY = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
             preX, preY = cv2.filter2D(read, -1, kernelX), cv2.filter2D(read, -1, kernelY)
             preX2, preY2 = cv2.filter2D(read2, -1, kernelX), cv2.filter2D(read2, -1, kernelY)
             save(preX + preY, preX2 + preY2)
-        if high_pass_filter == 'scharr':
+        elif high_pass_filter == 'scharr':
             schx = cv2.Scharr(read, -1, 1, 0)  # img, ddepth, dx, dy
             schy = cv2.Scharr(read, -1, 0, 1)
             schx2 = cv2.Scharr(read2, -1, 1, 0)
             schy2 = cv2.Scharr(read2, -1, 0, 1)
             save(schx + schy, schx2 + schy2)
-        if high_pass_filter == 'sobel':
+        elif high_pass_filter == 'sobel':
             sobx = cv2.Sobel(read, -1, 1, 0)  # img, ddepth, dx, dy
             soby = cv2.Sobel(read, -1, 0, 1)
             sobx2 = cv2.Sobel(read2, -1, 1, 0)
             soby2 = cv2.Sobel(read2, -1, 0, 1)
             save(sobx + soby, sobx2 + soby2)
-    if highpass == 'False':
+        else:
+            print('Error! high_pass_filter is not set to a correct value, please change.')
+            sys.exit()
+    elif highpassON == 'False':
         pass
+    else:
+        print('Error! highpassON is not set to a correct value, please change.')
+        sys.exit()
 
 
 def getCV():  # set-up images: import images into CV after highpass filter, reference set_up_getCV
-    if highpass == 'True':
+    if highpassON == 'True':
         img, img2 = cv2.imread(name), cv2.imread(name2)
         set_up_getCV(img, img2)
-    if highpass == 'False':
+    elif highpassON == 'False':
         img, img2 = cv2.imread(filename), cv2.imread(filename2)
         set_up_getCV(img, img2)
+    else:
+        print('Error in getCV(). Please check.')
+        sys.exit()
 
 
 def set_up_getCV(src, src2):  # resizes, gray scales, and gets image diff from images in getCV()
@@ -336,7 +352,7 @@ def find_coord(event, x, y, flags, param):  # mouse functions: left-click to get
                 mlab.zlabel("Signal")
                 mlab.show()  # 3D heatmap for 9x9 kernel
                 return
-            if num_count < 80:
+            elif num_count < 80:
                 # print('('+str(r[num_count])[1:-1]+','+str(g[num_count])[1:-1]+','+str(b[num_count])[1:-1]+')')
                 r_int, g_int, b_int = int((str(r[num_count])[1:-1])), int((str(g[num_count])[1:-1])), \
                                       int((str(b[num_count])[1:-1]))
