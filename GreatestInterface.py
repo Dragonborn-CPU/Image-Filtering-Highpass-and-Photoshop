@@ -16,20 +16,21 @@ import imghdr
 import sys
 
 ''' By: Ethan S for MLI
-Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image 
-difference, then finds all contours and their areas. Prints out location, area, perimeter, aspect ratio, and extent of 
-each contour. Furthermore, after getting image diff with contours, can left click on image to get 2D graph of all pixel 
-signals that have same x and same y as (x, y) cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood 
-heatmap of pixel signals of (x, y) cord clicked. Particle detection parameters can be edited in find_contours().
+Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image difference, then finds all contours and their areas. 
+Prints out location, area, perimeter, aspect ratio, and extent of each contour. Furthermore, after getting image diff with contours, can left click on image to get 
+2D graph of all pixel signals that have same x and same y as (x, y) cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood heatmap of pixel signals 
+of (x, y) cord clicked. Particle detection parameters can be edited in find_contours().
 Before Starting:
-1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main()
+1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main(). Imaging Edge Remote is for Sony camera while Spin View is for Blackfly 
+camera.
 2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST be stored in the same path specified under
 filename_save ='no path'.
-3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() 
-which requires photoshop to be opened before starting program. Can also disable Photoshop() if not using photoshop.
+3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() which requires photoshop to be opened before 
+starting program. Can also disable Photoshop() if not using photoshop.
 4. Images must be in RAW (.arw) or JPEG (.jpg) form; however, both images must be same image type (so both RAW form or
 both jpg form).
 5. Specify the variables (below)
+
 Steps when running program (If not using SpinView/ImagingEdge then just click run - you don't have to do anything else):
 1. Click Run
 2. Imaging Edge Remote or SpinView will open and click camera that you want to take pictures with
@@ -40,9 +41,9 @@ Steps when running program (If not using SpinView/ImagingEdge then just click ru
 # Variables
 filename_save = 'no path'
 '''Determines which save path to follow:
-path : If set to path, must set paths for images
-no path: don't set path for images being used, but must set path for folder where raw images are stored. Gets latest 2
-images added to folder where raw images are stored.
+path : If set to path, must set paths for images, NO CAMERA IMAGES ON COMPUTER
+no path: don't set path for images being used, but must set path for folder where raw images are stored. Gets latest 2 images added to folder where raw images are 
+stored. GETS IMAGES FROM CAMERA.
 '''
 # For filename_save = 'path'
 path = 'C:/Users/admin/Downloads/DSC00002.ARW'  # first image path
@@ -54,7 +55,7 @@ path4 = r'C:/Users/admin/Downloads/'   # folder where edited images are stored
 
 # Other settings
 hp = 15  # set highpass filter scale for Photoshop() here (range is 0-2000)
-resize = .3  # set resize value of image (in case image is too big). Range is 0 < x <= 1.
+resize = .3  # set resize value of image (in case image is too big). Range is 0 < x <= 1. SET RESIZE to 1 if you DO NOT want to resize the image
 highpassON = 'True'
 ''' Set highpass to either True or False:
 True : images are sent through highpass in OpenCV
@@ -99,7 +100,7 @@ def checkIfProcessRunning(processName):  # checks if process is running
     return False
 
 
-def sony_camera():  # Opens Imaging Edge Remote and pauses program until app is closed
+def ImagingEdge():  # Opens Imaging Edge Remote and pauses program until app is closed
     subprocess.Popen(r'C:\Program Files\Sony\Imaging Edge\\Remote')
     time.sleep(10)
     ImagingEdgeRunning = True
@@ -152,7 +153,7 @@ def save(src, src2):  # saves images from high_pass_CV
     cv2.imwrite(name2, src2)
 
 
-def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
+def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1. EDIT HIGHPASS FILTERS HERE
     if highpassON == 'True':
         read = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2GRAY)
         read2 = cv2.cvtColor(cv2.imread(filename2), cv2.COLOR_BGR2GRAY)
@@ -364,7 +365,8 @@ def find_coord(event, x, y, flags, param):  # mouse functions: left-click to get
 
 if __name__ == '__main__':
     font = cv2.FONT_HERSHEY_COMPLEX
-    # sony_camera()
+    # Disable steps such as ImagingEdge() or SpinView() by commenting out -> SpinView() -> # SpinView()
+    ImagingEdge()
     # SpinView()
     convertRAW()
     name, name2 = filename.split(".")[0] + '_PPP.jpg', filename2.split(".")[0] + '_PPP.jpg'
