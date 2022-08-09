@@ -12,19 +12,20 @@ import matplotlib.pyplot as plt
 import rawpy
 import imageio
 import glob
+import imghdr
 
 ''' By: Ethan S for MLI
-Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image 
-difference, then finds all contours and their areas. Prints out location, area, perimeter, aspect ratio, and extent of 
-each contour. Can also enable finding (X, Y) cords of all contours in find_contour(). Furthermore, after getting image 
-diff with contours, can left click on image to get 2D graph of all pixel signals that have same x and same y as (x, y) 
-cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood heatmap of pixel signals of (x, y) cord clicked.
+Program compatible with SpinView and Imaging Edge Remote. Sends two images through high pass filter, finds image difference, then finds all contours and their areas. 
+Prints out location, area, perimeter, aspect ratio, and extent of each contour. Furthermore, after getting image diff with contours, can left click on image to get 
+2D graph of all pixel signals that have same x and same y as (x, y) cord clicked. Right-clicking on image will show a 3D 9x9 neighborhood heatmap of pixel signals 
+of (x, y) cord clicked. Particle detection parameters can be edited in find_contours().
 Before Starting:
 1. Must have Imaging Edge Remote/SpinView OR disable sony_camera() and SpinView() in main()
-2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST have the same filepath as folder path
-3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() 
-which requires photoshop to be opened before starting program.
-4. Images used MUST be in RAW form.
+2. If using Imaging Edge Remote/SpinView, the two pictures taken MUST be stored in the same path specified under
+filename_save ='no path'.
+3. Photoshop must be CLOSED before starting program or replace Dispatch function with GetActiveObject in Photoshop() which requires photoshop to be opened before 
+starting program. Can also disable Photoshop() if not using photoshop.
+4. Images must be in RAW (.arw) or JPEG (.jpg) form; however, both images must be same image type (so both RAW form or both jpg form).
 5. Specify the variables (below)
 Steps when running program (If not using SpinView/ImagingEdge then just click run - you don't have to do anything else):
 1. Click Run
@@ -33,26 +34,23 @@ Steps when running program (If not using SpinView/ImagingEdge then just click ru
 4. Close app
 5. After app is closed, program will continue to run
 '''
-
-filename_save = 'path'
+# Variables
+filename_save = 'no path'
 '''Determines which save path to follow:
-path : If set to path, must set paths for images
-no path: don't set path for images being used, but must set path for folder where raw images are stored. Gets latest 2
-images added to folder where raw images are stored.
-Must disable which path you are not using right below.
+path : If set to path, must set paths for images. Use if not using SpinView or Imaging Edge.
+no path: Must set path for folder where raw images are stored. Gets latest 2 images added to folder where raw images are stored. Use if using SpinView/Imaging Edge.
 '''
-# For filename_save = 'path', disable section if using 'no path'
+# For filename_save = 'path'
 path = 'C:/Users/admin/Downloads/DSC00002.ARW'  # first image path
-path2 = 'C:/Users/admin/Downloads/DSC00003.ARW'  # second image path
+path2 = 'C:/Users/admin/Downloads/DSC00003.ARW'  # second image path; image difference is path - path2
 
-# For filename_save = 'no path', disable section if using 'path'
-# path = r'C:/Users/admin/OneDrive/Desktop/Raw Images/*'  # folder where raw images are stored in
-# path2 = r'C:/Users/admin/Downloads/'   # folder where edited images are stored
-
+# For filename_save = 'no path'
+path3 = r'C:/Users/admin/OneDrive/Desktop/Raw Images/*'  # folder where raw images are stored in
+path4 = r'C:/Users/admin/Downloads/'   # folder where edited images are stored
 
 # Other settings
 hp = 15  # set highpass filter scale for Photoshop() here (range is 0-2000)
-resize = .3  # set resize value of image (in case image is too big). Range is 0 < x <= 1
+resize = .3  # set resize value of image (in case image is too big). Range is 0 < x <= 1.
 highpass = 'True'
 ''' Set highpass to either True or False:
 True : images are sent through highpass in OpenCV
@@ -68,18 +66,19 @@ NOTE: All highpass filters degree/effect can be changed in high_pass_CV()
 def convertRAW():  # converts images from RAW to jpg. Furthermore, specifies filename_save paths.
     global filename, filename2
     if filename_save == 'path':
-        imageio.imsave(path.split(".")[0] + ".jpg", rawpy.imread(path).postprocess())
-        imageio.imsave(path2.split(".")[0] + ".jpg", rawpy.imread(path2).postprocess())
+        if imghdr.what(path) == 'tiff':
+            imageio.imsave(path.split(".")[0] + ".jpg", rawpy.imread(path).postprocess())
+            imageio.imsave(path2.split(".")[0] + ".jpg", rawpy.imread(path2).postprocess())
         filename, filename2 = path.split(".")[0] + ".jpg", path2.split(".")[0] + ".jpg"
     if filename_save == 'no path':
-        list_of_files = glob.glob(path)  # * means all if you need specific format then *.csv
-        sorted_files = sorted(list_of_files, key=os.path.getctime)
-        imageio.imsave(path2 + os.path.basename(sorted_files[-1]).split(".")[0] + '.jpg',
-                       rawpy.imread(sorted_files[-1]).postprocess())
-        imageio.imsave(path2 + os.path.basename(sorted_files[-2]).split(".")[0] + '.jpg',
-                       rawpy.imread(sorted_files[-2]).postprocess())
-        filename = path2 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
-        filename2 = path2 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
+        sorted_files = sorted(glob.glob(path3), key=os.path.getctime)
+        if imghdr.what(sorted_files[-1]) == 'tiff':
+            imageio.imsave(path4 + os.path.basename(sorted_files[-1]).split(".")[0] + '.jpg',
+                           rawpy.imread(sorted_files[-1]).postprocess())
+            imageio.imsave(path4 + os.path.basename(sorted_files[-2]).split(".")[0] + '.jpg',
+                           rawpy.imread(sorted_files[-2]).postprocess())
+        filename = path4 + os.path.basename(sorted_files[-1]).split(".")[0] + ".jpg"
+        filename2 = path4 + os.path.basename(sorted_files[-2]).split(".")[0] + ".jpg"
 
 
 def checkIfProcessRunning(processName):  # checks if process is running
@@ -108,7 +107,7 @@ def sony_camera():  # Opens Imaging Edge Remote and pauses program until app is 
 
 
 def SpinView():  # Opens SpinView and pauses program until app is closed
-    os.startfile(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Spinnaker SDK (64bit)\SpinView.lnk")
+    os.startfile(r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Spinnaker SDK (64bit)\SpinView.lnk')
     time.sleep(10)
     SpinViewRunning = True
     while SpinViewRunning:
@@ -142,12 +141,8 @@ def Photoshop():  # sends images through Photoshop highpass filter
 
 
 def save(src, src2):  # saves images from high_pass_CV
-    if high_pass_filter == ("prewitt" or "sobel" or "scharr"):
-        cv2.imwrite(name, src)
-        cv2.imwrite(name2, src2)
-    else:
-        cv2.imwrite(name, src)
-        cv2.imwrite(name2, src2)
+    cv2.imwrite(name, src)
+    cv2.imwrite(name2, src2)
 
 
 def high_pass_CV():  # high pass filters in OpenCV, ddepth should always be -1
@@ -227,12 +222,12 @@ def getCV():  # set-up images: import images into CV after highpass filter, refe
         set_up_getCV(img, img2)
 
 
-def set_up_getCV(src, src2):   # resizes, gray scales, and gets image diff from images in getCV()
+def set_up_getCV(src, src2):  # resizes, gray scales, and gets image diff from images in getCV()
     w, h = int(src.shape[1] * resize), int(src.shape[0] * resize)
     img, img2 = cv2.resize(src, (w, h)), cv2.resize(src2, (w, h))
     img, img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('Image 1', img)
-    cv2.imshow('Image 2', img2)
+    cv2.imshow(f'First Image: {filename}', img)
+    cv2.imshow(f'Second Image: {filename2}', img2)
     imgdiff = cv2.subtract(img, img2)
     cv2.imwrite(filename.split(".")[0] + '_Diff.JPG', imgdiff)
 
@@ -324,8 +319,7 @@ def find_coord(event, x, y, flags, param):  # mouse functions: left-click to get
         Pixel_Intensity = []
         for num in Y:
             if num_count == 80:
-                # print('(' + str(r[num_count])[1:-1] + ',' + str(g[num_count])[1:-1] + ',' +
-                # str(b[num_count])[1:-1] + ')')
+                # print('(' + str(r[num_count])[1:-1] + str(g[num_count])[1:-1] + str(b[num_count])[1:-1] + ')')
                 r_int, g_int, b_int = int((str(r[num_count])[1:-1])), int((str(g[num_count])[1:-1])), \
                                       int((str(b[num_count])[1:-1]))
                 mean = sqrt(0.241 * (r_int ** 2) + 0.691 * (g_int ** 2) + 0.068 * (b_int ** 2))
@@ -353,10 +347,10 @@ def find_coord(event, x, y, flags, param):  # mouse functions: left-click to get
 
 
 if __name__ == '__main__':
+    font = cv2.FONT_HERSHEY_COMPLEX
     # sony_camera()
     # SpinView()
     convertRAW()
-    font = cv2.FONT_HERSHEY_COMPLEX
     name, name2 = filename.split(".")[0] + '_PPP.jpg', filename2.split(".")[0] + '_PPP.jpg'
     # Photoshop()
     high_pass_CV()
